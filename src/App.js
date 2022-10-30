@@ -1,25 +1,104 @@
-import logo from './logo.svg';
-import './App.css';
+import { Container, Flex, Heading, List, Stack } from "@chakra-ui/react"
+import React, { useState } from "react"
+import { useDrop } from "react-dnd"
+import Player from "./components/Player"
 
 function App() {
+  const [players, setPlayers] = useState([
+    { name: "Player 1" },
+    { name: "Player 2" },
+    { name: "Player 3" },
+    { name: "Player 4" },
+    { name: "Player 5" },
+  ])
+
+  const [team, setTeam] = useState([])
+
+  const [{ isOver }, addToTeamRef] = useDrop({
+    accept: "player",
+    collect: (monitor) => ({ isOver: !!monitor.isOver() }),
+  })
+
+  const [{ isOver: isPlayerOver }, removeFromTeamRef] = useDrop({
+    accept: "team",
+    collect: (monitor) => ({ isOver: !!monitor.isOver() }),
+  })
+
+  const movePlayerToTeam = (item) => {
+    console.log(item)
+    setPlayers((prev) => prev.filter((_, i) => i !== item.index))
+    setTeam((prev) => [...prev, item])
+  }
+
+  const removePlayerFromTeam = (item) => {
+    setTeam((prev) => prev.filter((_, i) => i !== item.index))
+    setPlayers((prev) => [...prev, item])
+    console.log(item)
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <Container maxW="800px">
+      <Heading p="2" align="center" color="GrayText">
+        React Drag and Drop
+      </Heading>
+      <Flex justify="space-between" height="90vh" align="center">
+        <Stack width="350px">
+          <Heading fontSize="3xl" color="yellow.800" textAlign="center">
+            PLAYERS
+          </Heading>
+          <List
+            p="4"
+            minH="70vh"
+            boxShadow="xl"
+            borderRadius="md"
+            ref={removeFromTeamRef}
+            bgGradient={
+              isPlayerOver
+                ? "linear(to-b, yellow.300, yellow.500)"
+                : "linear(to-b, yellow.100, yellow.200)"
+            }
+          >
+            {players.map((e, i) => (
+              <Player
+                key={e.name}
+                item={e}
+                type="player"
+                index={i}
+                onDropPlayer={movePlayerToTeam}
+              />
+            ))}
+          </List>
+        </Stack>
+        <Stack width="350px">
+          <Heading fontSize="3xl" color="teal.800" textAlign="center">
+            TEAM
+          </Heading>
+          <List
+            p="4"
+            minH="70vh"
+            boxShadow="xl"
+            borderRadius="md"
+            ref={addToTeamRef}
+            bgGradient={
+              isOver
+                ? "linear(to-b, teal.300, teal.500)"
+                : "linear(to-b, teal.100, teal.200)"
+            }
+          >
+            {team.map((e, i) => (
+              <Player
+                key={e.name}
+                item={e}
+                type="team"
+                index={i}
+                onDropPlayer={removePlayerFromTeam}
+              />
+            ))}
+          </List>
+        </Stack>
+      </Flex>
+    </Container>
+  )
 }
 
-export default App;
+export default App
